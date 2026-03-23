@@ -2,13 +2,12 @@ defaults:
   - _self_
 
 api: false
-gradio: false
 model_path: "checkpoints/redflag-llama3"
 host: "0.0.0.0"
 port: 8000
   
 sampling_params:
-  _target_: vllm.SamplingParams
+  _target_: inference.SamplingParams
   temperature: 0.1  # Low temperature for precise JSON responses
   top_p: 0.9
   max_tokens: 150

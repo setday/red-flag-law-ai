@@ -3,8 +3,9 @@
 
 import hydra
 from hydra.utils import instantiate
-from omegaconf import DictConfig
+from omegaconf import DictConfig, OmegaConf
 from peft import prepare_model_for_kbit_training
+from transformers import DataCollatorForLanguageModeling
 from trl import SFTTrainer
 
 from src.utils.prompt import format_prompt
@@ -25,11 +26,14 @@ def format_instruction(sample):
         prompt = format_prompt(text) + '{"categories": "None", "explanation": "This clause is a standard, balanced legal term, without any bias."}'
     return {"text": prompt}
 
-@hydra.main(version_base=None, config_path="../configs", config_name="train")
+@hydra.main(version_base=None, config_path="configs", config_name="train")
 def main(cfg: DictConfig):
     print(f"Loading {cfg.dataset.train.name} Dataset...")
     dataset = instantiate(cfg.dataset.train)
-    train_data = dataset.map(format_instruction)
+    train_data = dataset.map(
+        format_instruction,
+        remove_columns=dataset.column_names,
+    )
     
     print("Initializing QLoRA configs...")
     tokenizer = instantiate(cfg.model_pipeline.tokenizer)
@@ -38,13 +42,21 @@ def main(cfg: DictConfig):
     model = instantiate(cfg.model_pipeline.model, device_map="auto")
     model = prepare_model_for_kbit_training(model)
     
+    data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False)
+    peft_cfg = instantiate(cfg.peft_config, _convert_="all")
+    if getattr(peft_cfg, "target_modules", None) is not None:
+        peft_cfg.target_modules = list(peft_cfg.target_modules)
+    if getattr(peft_cfg, "modules_to_save", None) is not None:
+        peft_cfg.modules_to_save = list(peft_cfg.modules_to_save)
+    if getattr(peft_cfg, "layers_to_transform", None) is not None:
+        peft_cfg.layers_to_transform = list(peft_cfg.layers_to_transform)
+    
     trainer = SFTTrainer(
         model=model,
-        tokenizer=tokenizer,
+        processing_class=tokenizer,
         train_dataset=train_data,
-        dataset_text_field="text",
-        max_seq_length=cfg.model_pipeline.model.max_seq_length,
-        peft_config=instantiate(cfg.peft_config),
+        data_collator=data_collator,
+        peft_config=peft_cfg,
         args=instantiate(cfg.training)
     )
     

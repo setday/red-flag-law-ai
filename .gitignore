@@ -224,3 +224,13 @@ wandb/
 
 # Temporary files
 tmp/
+
+# Checkpoints
+checkpoints/
+outputs/
+
+# Data cache dir
+data/
+
+# Utility files
+blocktask.sbatch

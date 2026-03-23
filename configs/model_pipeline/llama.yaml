@@ -1,15 +1,16 @@
 tokenizer:
   _target_: transformers.AutoTokenizer.from_pretrained
   pretrained_model_name_or_path: ${model_pipeline.model.pretrained_model_name_or_path}
+  # padding: True
+  # truncation: True
 
 model:
   _target_: transformers.AutoModelForCausalLM.from_pretrained
-  pretrained_model_name_or_path: "meta-llama/Meta-Llama-3-8B-Instruct"
+  pretrained_model_name_or_path: "meta-llama/Llama-3.2-3B-Instruct"
   # pretrained_model_name_or_path: "meta-llama/Llama-2-7b-hf"  # Base model for fine-tuning
-  max_seq_length: 512
   quantization_config:
     _target_: transformers.BitsAndBytesConfig
     load_in_8bit: false  # Use 8-bit quantization for memory efficiency
     load_in_4bit: true   # Use 4-bit quantization (QLoRA)
     bnb_4bit_quant_type: "nf4"
-    bnb_4bit_compute_dtype: "bf16"
+    bnb_4bit_compute_dtype: "bfloat16"

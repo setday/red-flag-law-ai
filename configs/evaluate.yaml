@@ -9,7 +9,4 @@ metrics:
   - "precision_macro"
   - "recall_macro"
   - "bertscore"
-  - "llm_judge"
 bertscore_model: "microsoft/deberta-xlarge-mnli"
-llm_judge_max_samples: 100
-llm_judge_max_new_tokens: 80
