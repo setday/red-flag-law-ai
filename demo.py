@@ -3,6 +3,7 @@
 
 import sys
 from pathlib import Path
+from typing import Dict, Any
 
 import hydra
 from omegaconf import DictConfig
@@ -10,6 +11,7 @@ from omegaconf import DictConfig
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import uvicorn
+import gradio as gr
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -53,13 +55,74 @@ async def analyze_clause(request: AnalyzeRequest):
             )
         raise HTTPException(status_code=500, detail=str(e))
 
-@hydra.main(version_base=None, config_path="../configs", config_name="demo")
+def _analyze_for_gradio(text: str) -> Dict[str, Any]:
+    if detector is None:
+        return {
+            "is_unfair": False,
+            "category": "Error",
+            "explanation": "Detector is not initialized.",
+        }
+    if not text or not text.strip():
+        return {
+            "is_unfair": False,
+            "category": "Validation",
+            "explanation": "Text cannot be empty.",
+        }
+    return detector.analyze(text)
+
+
+def launch_gradio(host: str, port: int):
+    with gr.Blocks(title="Red Flag Law AI") as demo:
+        gr.Markdown("# Red Flag Law AI")
+        gr.Markdown("Analyze a legal clause and detect potentially unfair terms.")
+
+        input_box = gr.Textbox(
+            label="Legal Clause",
+            lines=6,
+            placeholder="Paste a clause from Terms of Service, Privacy Policy, or contract...",
+        )
+        submit_btn = gr.Button("Analyze", variant="primary")
+        clear_btn = gr.Button("Clear")
+
+        unfair_out = gr.Checkbox(label="Is Unfair")
+        category_out = gr.Textbox(label="Category")
+        explanation_out = gr.Textbox(label="Explanation", lines=5)
+        json_out = gr.JSON(label="Raw Response")
+
+        def _submit(text: str):
+            result = _analyze_for_gradio(text)
+            return (
+                bool(result.get("is_unfair", False)),
+                str(result.get("category", "")),
+                str(result.get("explanation", "")),
+                result,
+            )
+
+        submit_btn.click(
+            _submit,
+            inputs=[input_box],
+            outputs=[unfair_out, category_out, explanation_out, json_out],
+        )
+        clear_btn.click(
+            lambda: ("", False, "", "", {}),
+            inputs=None,
+            outputs=[input_box, unfair_out, category_out, explanation_out, json_out],
+        )
+
+    demo.launch(server_name=host, server_port=port, share=False)
+
+
+@hydra.main(version_base=None, config_path="configs", config_name="demo")
 def main(cfg: DictConfig):
     global detector
 
     """Run example analysis on sample legal clauses or start API server."""
     if cfg.api:
         uvicorn.run("examples.demo:app", host=cfg.host, port=cfg.port, reload=False)
+        return
+    
+    if cfg.gradio:
+        launch_gradio(cfg.host, cfg.port)
         return
         
     clauses = [

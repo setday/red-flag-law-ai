@@ -8,6 +8,7 @@ from sklearn.metrics import (
     recall_score,
     classification_report
 )
+from sklearn.preprocessing import MultiLabelBinarizer
 from bert_score import score
 
 
@@ -15,32 +16,9 @@ class MetricsCalculator:
     """Calculator for evaluation metrics."""
 
     @staticmethod
-    def compute_classification_metrics(
-        predictions: List[bool],
-        references: List[bool]
-    ) -> Dict[str, float]:
-        """
-        Compute classification metrics.
-
-        Args:
-            predictions: List of predicted labels (True for unfair, False for fair)
-            references: List of ground truth labels
-
-        Returns:
-            Dictionary with accuracy, F1, precision, and recall
-        """
-        return {
-            "accuracy": accuracy_score(references, predictions),
-            "f1_macro": f1_score(references, predictions, average="macro"),
-            "precision_macro": precision_score(references, predictions, average="macro"),
-            "recall_macro": recall_score(references, predictions, average="macro"),
-        }
-
-    @staticmethod
     def compute_multiclass_metrics(
-        predictions: List[str],
-        references: List[str],
-        labels: List[str]
+        predictions: List[List[str]],
+        references: List[List[str]],
     ) -> Dict[str, float]:
         """
         Compute metrics for multi-class classification.
@@ -53,12 +31,17 @@ class MetricsCalculator:
         Returns:
             Dictionary with various metrics
         """
+        # transform lists of categories into binary format for each label
+        mlb = MultiLabelBinarizer()
+        y_true = mlb.fit_transform(references)
+        y_pred = mlb.transform(predictions)
+
         return {
-            "accuracy": accuracy_score(references, predictions),
-            "f1_macro": f1_score(references, predictions, average="macro", labels=labels, zero_division=0),
-            "f1_weighted": f1_score(references, predictions, average="weighted", labels=labels, zero_division=0),
-            "precision_macro": precision_score(references, predictions, average="macro", labels=labels, zero_division=0),
-            "recall_macro": recall_score(references, predictions, average="macro", labels=labels, zero_division=0),
+            "accuracy": accuracy_score(y_true, y_pred),
+            "f1_macro": f1_score(y_true, y_pred, average="macro", zero_division=0),
+            "f1_weighted": f1_score(y_true, y_pred, average="weighted", zero_division=0),
+            "precision_macro": precision_score(y_true, y_pred, average="macro", zero_division=0),
+            "recall_macro": recall_score(y_true, y_pred, average="macro", zero_division=0),
         }
 
     @staticmethod
@@ -100,3 +83,34 @@ class MetricsCalculator:
             labels: List of all possible labels
         """
         print(classification_report(references, predictions, labels=labels, zero_division=0))
+
+    @staticmethod
+    def compute_llm_judge_metrics(
+        predictions: List[str],
+        references: List[str],
+        judge_fn
+    ) -> Dict[str, float]:
+        """
+        Compute metrics using an LLM as a judge.
+
+        Args:
+            predictions: List of predicted explanations
+            references: List of reference explanations
+            judge_fn: Function that takes (pred, ref) and returns a dict with 'score' key
+
+        Returns:
+            Dictionary with mean score and pass rate
+        """
+        
+        scores = []
+        for pred, ref in zip(predictions, references):
+            result = judge_fn(pred, ref)
+            scores.append(result.get("score", 0))
+
+        mean_score = sum(scores) / len(scores) if scores else 0.0
+        pass_rate = sum(scores) / len(scores) if scores else 0.0
+
+        return {
+            "llm_judge_mean": mean_score,
+            "llm_judge_pass_rate": pass_rate,
+        }

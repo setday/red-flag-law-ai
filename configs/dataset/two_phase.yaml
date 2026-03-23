@@ -1,0 +1,31 @@
+phase1:
+  train:
+    _target_: datasets.load_dataset
+    path: "coastalcph/lex_glue"
+    name: "unfair_tos"
+    split: "train"
+    cache_dir: "./data/cache"
+
+phase2:
+  train:
+    _target_: datasets.load_dataset
+    path: "kiddothe2b/contract-nli"
+    name: "contractnli_a"
+    split: "train"
+    cache_dir: "./data/cache"
+
+labels_eval:
+  _target_: datasets.load_dataset
+  path: "coastalcph/lex_glue"
+  name: "unfair_tos"
+  split: "validation"
+  cache_dir: "./data/cache"
+  max_samples: 200
+
+explanations_eval:
+  _target_: datasets.load_dataset
+  path: "kiddothe2b/contract-nli"
+  name: "contractnli_a"
+  split: "validation"
+  cache_dir: "./data/cache"
+  max_samples: 200

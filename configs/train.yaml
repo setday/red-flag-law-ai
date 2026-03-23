@@ -1,27 +1,46 @@
 defaults:
-  - dataset: lex_glue
+  - dataset: two_phase
   - model_pipeline: llama
   - _self_
 
 training:
-  _target_: trl.SFTConfig
-  output_dir: "checkpoints"
-  num_train_epochs: 3
-  per_device_train_batch_size: 64
-  # per_device_eval_batch_size: 8
-  # gradient_accumulation_steps: 4
-  learning_rate: 2.0e-5
-  warmup_steps: 30
-  logging_steps: 10
-  save_steps: 1000
-  # eval_steps: 500
-  save_total_limit: 3
-  bf16: true  # Use mixed precision training
-  gradient_checkpointing: true
-  optim: "paged_adamw_8bit"
-  lr_scheduler_type: "cosine"
-  dataloader_num_workers: 4
-  seed: 42
+  phase1:
+    _target_: trl.SFTConfig
+    output_dir: "checkpoints/phase1"
+    num_train_epochs: 3
+    per_device_train_batch_size: 64
+    # per_device_eval_batch_size: 8
+    # gradient_accumulation_steps: 4
+    learning_rate: 2.0e-5
+    warmup_steps: 30
+    logging_steps: 10
+    save_steps: 1000
+    save_total_limit: 1
+    bf16: true
+    gradient_checkpointing: true
+    optim: "paged_adamw_8bit"
+    lr_scheduler_type: "cosine"
+    dataloader_num_workers: 4
+    seed: 42
+
+  phase2:
+    _target_: trl.SFTConfig
+    output_dir: "checkpoints/phase2"
+    num_train_epochs: 3
+    per_device_train_batch_size: 32
+    # per_device_eval_batch_size: 8
+    # gradient_accumulation_steps: 4
+    learning_rate: 1.0e-5
+    warmup_steps: 20
+    logging_steps: 10
+    save_steps: 500
+    save_total_limit: 3
+    bf16: true
+    gradient_checkpointing: true
+    optim: "paged_adamw_8bit"
+    lr_scheduler_type: "cosine"
+    dataloader_num_workers: 4
+    seed: 42
   
 
 peft_config:

@@ -17,6 +17,7 @@ pyyaml>=6.0.0
 hydra-core>=1.3.0
 
 # Utilities
+bitsandbytes>=0.49.2
 tqdm>=4.67.0
 vllm
 gradio>=5.24.0

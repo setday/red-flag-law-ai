@@ -1,5 +1,5 @@
 defaults:
-  - dataset: lex_glue
+  - dataset: two_phase
   - model_pipeline: llama_finetuned
   - _self_
 
@@ -9,4 +9,8 @@ metrics:
   - "precision_macro"
   - "recall_macro"
   - "bertscore"
+  - "llm_judge"
+
+llm_judge_max_samples: 50
+llm_judge_max_new_tokens: 64
 bertscore_model: "microsoft/deberta-xlarge-mnli"
