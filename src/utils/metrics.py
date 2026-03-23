@@ -1,7 +1,6 @@
 """Evaluation metrics for Red Flag Law AI."""
 
 from typing import Dict, List
-import numpy as np
 from sklearn.metrics import (
     accuracy_score,
     f1_score,
@@ -9,6 +8,7 @@ from sklearn.metrics import (
     recall_score,
     classification_report
 )
+from bert_score import score
 
 
 class MetricsCalculator:
@@ -78,11 +78,13 @@ class MetricsCalculator:
         Returns:
             Dictionary with precision, recall, and F1 scores
         """
-        # TODO: Implement BERTScore computation
-        # from bert_score import score
-        # P, R, F1 = score(predictions, references, model_type=model_name)
-        raise NotImplementedError("BERTScore computation not yet implemented")
-
+        P, R, F1 = score(predictions, references, model_type=model_name, lang="en", verbose=False)
+        return {
+            "bertscore_precision": P.mean().item(),
+            "bertscore_recall": R.mean().item(),
+            "bertscore_f1": F1.mean().item(),
+        }
+    
     @staticmethod
     def print_classification_report(
         predictions: List[str],

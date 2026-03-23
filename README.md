@@ -102,21 +102,28 @@ The approach uses **Instruction Tuning** where:
 ```
 red-flag-law-ai/
 ├── src/                    # Source code
-│   ├── data/              # Data loading and preprocessing
-│   ├── models/            # Model definitions
-│   ├── training/          # Training scripts
-│   ├── inference/         # Inference and evaluation
-│   └── utils/             # Utility functions
+│   ├── inference/          # Inference and evaluation
+│   │   └── detector.py
+│   ├── utils/              # Utility functions
+│   │   ├── metrics.py
+│   │   └── __init__.py
+│   ├── demo.py
+│   ├── evaluate.py
+│   └── train.py
+├── configs/                # Configuration files
+│   ├── model_pipeline/
+│   │   ├── llama_finetuned.yaml
+│   │   └── llama.yaml
+│   ├── demo.yaml
+│   ├── evaluate.yaml
+│   └── train.yaml
 ├── data/                   # Data directory (add to .gitignore for large files)
-│   ├── raw/               # Raw datasets
-│   ├── processed/         # Preprocessed datasets
-│   └── README.md          # Data documentation
-├── notebooks/             # Jupyter notebooks for experiments
-├── configs/               # Configuration files
-├── tests/                 # Unit tests
-├── scripts/               # Utility scripts
-├── requirements.txt       # Python dependencies
-└── README.md             # This file
+├── requirements.txt        # Python dependencies
+├── pyproject.toml
+├── LICENSE
+├── SETUP.md
+├── SOLUTION.md
+└── README.md               # This file
 ```
 
 ## Getting Started
@@ -163,46 +170,22 @@ print(result)
 
 ## Development
 
-### Running Tests
-
-```bash
-pytest tests/
-```
-
 ### Training a Model
 
 ```bash
-python scripts/train.py --config configs/default.yaml
+python src/train.py --config configs/train.yaml
 ```
 
 ### Evaluation
 
 ```bash
-python scripts/evaluate.py --model-path models/checkpoint.pt --dataset unfair-tos
+python src/evaluate.py --config configs/evaluate.yaml
 ```
-
-## Contributing
-
-Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Acknowledgments
 
 - LexGLUE benchmark and Unfair-ToS dataset creators
 - The legal tech and NLP research communities
-
-## Roadmap
-
-- [ ] Data preprocessing pipeline
-- [ ] Baseline model implementation
-- [ ] Instruction tuning setup
-- [ ] Evaluation metrics implementation
-- [ ] Web interface for document analysis
-- [ ] API endpoint for integration
-- [ ] Multi-language support
 
 ## Citation
 

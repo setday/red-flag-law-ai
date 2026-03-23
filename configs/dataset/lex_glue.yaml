@@ -1,0 +1,13 @@
+train:
+  _target_: datasets.load_dataset
+  path: "coastalcph/lex_glue"
+  name: "unfair_tos"
+  split: "train"
+  cache_dir: "./data/cache"
+test:
+  _target_: datasets.load_dataset
+  path: ${dataset.train.path}
+  name: ${dataset.train.name}
+  split: "validation"
+  cache_dir: ${dataset.train.cache_dir}
+  max_samples: 50

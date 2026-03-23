@@ -1,0 +1,35 @@
+defaults:
+  - dataset: lex_glue
+  - model_pipeline: llama
+  - _self_
+
+training:
+  _target_: trl.SFTConfig
+  output_dir: "checkpoints"
+  num_train_epochs: 3
+  per_device_train_batch_size: 4
+  # per_device_eval_batch_size: 8
+  gradient_accumulation_steps: 4
+  learning_rate: 2.0e-5
+  warmup_steps: 100
+  logging_steps: 10
+  save_steps: 500
+  # eval_steps: 500
+  save_total_limit: 3
+  fp16: true  # Use mixed precision training
+  gradient_checkpointing: true
+  optim: "paged_adamw_8bit"
+  lr_scheduler_type: "cosine"
+  dataloader_num_workers: 4
+  seed: 42
+
+peft_config:
+  _target_: peft.LoraConfig
+  r: 16  # Rank of LoRA matrices
+  lora_alpha: 32
+  target_modules:
+    - "q_proj"
+    - "v_proj"
+  lora_dropout: 0.05
+  bias: "none"
+  task_type: "CAUSAL_LM"

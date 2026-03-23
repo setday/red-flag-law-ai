@@ -1,0 +1,12 @@
+defaults:
+  - dataset: lex_glue
+  - model_pipeline: llama_finetuned
+  - _self_
+
+metrics:
+  - "accuracy"
+  - "f1_macro"
+  - "precision_macro"
+  - "recall_macro"
+  - "bertscore"
+bertscore_model: "microsoft/deberta-xlarge-mnli"
